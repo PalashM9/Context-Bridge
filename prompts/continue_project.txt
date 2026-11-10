@@ -1,0 +1,16 @@
+Use the active imported project reference to perform the latest
+explicitly assigned unfinished project task now.
+
+Start with the requested deliverable. Do not begin with an announcement
+that a handoff was imported or a general project recap.
+
+Follow the project's active requirements and constraints.
+Distinguish existing decisions from details you newly propose.
+Preserve explicitly undecided choices; do not silently select them.
+
+Do not claim work has been implemented or executed when it has not.
+
+If no next task is identified, ask one specific question about what
+the user wants to do next. If a missing detail blocks the requested
+task, identify that detail. Otherwise make progress without asking
+the user to repeat information already supplied.

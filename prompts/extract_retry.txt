@@ -1,0 +1,17 @@
+The previous extraction failed validation.
+
+Validation feedback:
+{error}
+
+Generate a fresh complete JSON object matching the original schema.
+Do not return a patch, explanation, or Markdown.
+
+Recheck:
+- Every evidence ID exists in the supplied user messages.
+- Each cited message actually supports the associated statement.
+- Negations and uncertainty are preserved.
+- Undecided options are not recorded as accepted decisions.
+- Unsupported categories use empty arrays.
+
+If the feedback reports an output limit, shorten item wording and
+remove repetition without dropping essential project facts.
