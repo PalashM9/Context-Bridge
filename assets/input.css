@@ -1,0 +1,113 @@
+@import "tailwindcss" source(none);
+
+@source "../templates";
+@source "../static/app.js";
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+
+  button,
+  select,
+  summary,
+  input[type="checkbox"] {
+    @apply cursor-pointer;
+  }
+
+  button:disabled,
+  select:disabled,
+  textarea:disabled,
+  input:disabled {
+    @apply cursor-not-allowed opacity-45;
+  }
+
+  button:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  input:focus-visible {
+    @apply outline-2 outline-offset-2 outline-gray-500;
+  }
+
+  textarea {
+    @apply block w-full resize-y rounded-xl border border-gray-200
+           bg-white px-4 py-3 text-sm leading-6 text-gray-900
+           placeholder:text-gray-400 focus:border-gray-400;
+  }
+
+  select {
+    @apply rounded-lg border border-gray-300 bg-white
+           px-3 py-2.5 text-sm text-gray-800;
+  }
+
+  dialog::backdrop {
+    background: rgb(17 24 39 / 40%);
+  }
+}
+
+@layer components {
+  .primary-button {
+    @apply rounded-lg border border-gray-800 bg-gray-800
+           px-4 py-2.5 text-sm font-medium text-white
+           transition-colors hover:bg-gray-700;
+  }
+
+  .secondary-button {
+    @apply rounded-lg border border-gray-300 bg-white
+           px-4 py-2.5 text-sm font-medium text-gray-700
+           transition-colors hover:bg-gray-50;
+  }
+
+  .chat-panel {
+    @apply flex h-[660px] min-w-0 flex-col overflow-hidden
+           rounded-2xl border border-gray-200 bg-white shadow-sm;
+  }
+
+  .messages {
+    @apply min-h-0 flex-1 overflow-y-auto p-5;
+  }
+
+  .message {
+    @apply mb-5;
+  }
+
+  .message-role {
+    @apply mb-2 text-[11px] font-semibold tracking-wide text-gray-500;
+  }
+
+  .message-content {
+    @apply rounded-xl border border-gray-200 bg-white
+           px-4 py-3 text-sm leading-7 text-gray-800
+           whitespace-pre-wrap wrap-anywhere;
+  }
+
+  .message.user .message-content {
+    @apply bg-gray-100;
+  }
+
+  .message-id {
+    @apply mt-1.5 block text-[10px] text-gray-400;
+  }
+
+  .empty-state {
+    @apply mx-auto mt-20 max-w-xs text-center text-sm
+           leading-7 text-gray-400;
+  }
+
+  .status {
+    @apply min-h-12 py-3 text-sm leading-6 text-gray-500;
+  }
+
+  .status.error {
+    @apply font-medium text-gray-950;
+  }
+
+  .status.success {
+    @apply text-gray-700;
+  }
+
+  .status.busy {
+    @apply text-gray-600;
+  }
+}

@@ -24,7 +24,6 @@ if (
 
 gateway = ModelGateway()
 bridge = BridgeService(gateway)
-
 operation_lock = threading.RLock()
 
 
@@ -37,10 +36,8 @@ def cleanup_loop():
 
 def json_body():
     data = request.get_json(silent=True)
-
     if not isinstance(data, dict):
         raise AppError("Expected a JSON object.")
-
     return data
 
 
@@ -50,31 +47,20 @@ def protect_local_application():
         f"127.0.0.1:{PORT}",
         f"localhost:{PORT}",
     }:
-        raise AppError(
-            "Invalid host. This prototype is loopback-only.",
-            400,
-        )
+        raise AppError("Invalid host. This prototype is loopback-only.")
 
     origin = request.headers.get("Origin")
 
     if origin and urlparse(origin).netloc != request.host:
-        raise AppError(
-            "Cross-origin browser requests are not allowed.",
-            403,
-        )
+        raise AppError("Cross-origin browser requests are not allowed.", 403)
 
     if request.path.startswith("/api/v1/"):
         supplied = request.headers.get("Authorization", "")
-        expected = f"Bearer {API_TOKEN}"
-
         if not secrets.compare_digest(
-            supplied.encode("utf-8"),
-            expected.encode("utf-8"),
+            supplied.encode(),
+            f"Bearer {API_TOKEN}".encode(),
         ):
-            raise AppError(
-                "A valid Bearer token is required.",
-                401,
-            )
+            raise AppError("A valid Bearer token is required.", 401)
 
 
 @app.after_request
@@ -82,18 +68,11 @@ def add_security_headers(response):
     response.headers["Cache-Control"] = "no-store"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "no-referrer"
-
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self'; "
-        "style-src 'self'; "
-        "connect-src 'self'; "
-        "img-src 'self' data:; "
-        "frame-ancestors 'none'; "
-        "base-uri 'self'; "
-        "form-action 'self'"
+        "default-src 'self'; script-src 'self'; style-src 'self'; "
+        "connect-src 'self'; img-src 'self' data:; "
+        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     )
-
     return response
 
 
@@ -116,20 +95,18 @@ def handle_unexpected_error(error):
 
 @app.get("/")
 def index():
-    return render_template(
-        "index.html",
-        api_token=API_TOKEN,
-    )
+    return render_template("index.html", api_token=API_TOKEN)
 
 
 @app.get("/api/v1/health")
 def health():
     return jsonify(
         status="ok",
-        api_version="1.0",
+        api_version="1.1",
         persistence="memory-only",
-        conversation_idle_timeout_seconds=30 * 60,
-        transfer_timeout_seconds=5 * 60,
+        conversation_idle_timeout_seconds=1800,
+        transfer_timeout_seconds=300,
+        message_selection=True,
     )
 
 
@@ -141,34 +118,25 @@ def configuration():
 @app.post("/api/v1/conversations")
 def create_conversation():
     data = json_body()
-
     with operation_lock:
         result = bridge.create_conversation(
             role=data.get("role"),
             messages=data.get("messages"),
         )
-
     return jsonify(result), 201
 
 
 @app.get("/api/v1/conversations/<conversation_id>")
 def get_conversation(conversation_id):
     with operation_lock:
-        return jsonify(
-            bridge.get_conversation(conversation_id)
-        )
+        return jsonify(bridge.get_conversation(conversation_id))
 
 
 @app.post("/api/v1/conversations/<conversation_id>/messages")
 def send_message(conversation_id):
     data = json_body()
-
     with operation_lock:
-        result = bridge.chat(
-            conversation_id,
-            data.get("message"),
-        )
-
+        result = bridge.chat(conversation_id, data.get("message"))
     return jsonify(result)
 
 
@@ -176,55 +144,50 @@ def send_message(conversation_id):
 def continue_conversation(conversation_id):
     with operation_lock:
         result = bridge.continue_chat(conversation_id)
-
     return jsonify(result)
 
 
 @app.post("/api/v1/transfers/prepare")
 def prepare_transfer():
     data = json_body()
-
     with operation_lock:
         result = bridge.prepare(
             source_id=data.get("source_id"),
             destination_id=data.get("destination_id"),
             mode=data.get("mode", "summary"),
+            selected_user_message_ids=data.get(
+                "selected_user_message_ids"
+            ),
+            source_revision=data.get("source_revision"),
         )
-
     return jsonify(result), 201
 
 
 @app.get("/api/v1/transfers/<transfer_id>")
 def get_transfer(transfer_id):
     with operation_lock:
-        return jsonify(
-            bridge.get_transfer(transfer_id)
-        )
+        return jsonify(bridge.get_transfer(transfer_id))
 
 
 @app.post("/api/v1/transfers/<transfer_id>/commit")
 def commit_transfer(transfer_id):
     data = json_body()
-
     with operation_lock:
         result = bridge.commit(
             transfer_id=transfer_id,
             approved=data.get("approved"),
             approved_hash=data.get("payload_sha256"),
         )
-
     return jsonify(result)
 
 
 @app.post("/api/v1/sessions/clear")
 def clear_workspace():
     data = json_body()
-
     with operation_lock:
         result = bridge.clear_conversations(
             data.get("conversation_ids")
         )
-
     return jsonify(result)
 
 
